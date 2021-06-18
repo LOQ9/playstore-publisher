@@ -45,7 +45,7 @@ func (s *UploadApkService) Upload(packageNameID string,
 	// Validate track name
 	track, err := s.client.Helper.resolveTrackName(packageNameID, edit.Id, trackName)
 	if err != nil {
-		return fmt.Errorf("Failed to resolve track '%v' (Error: %v)", trackName, err)
+		return fmt.Errorf("failed to resolve track '%v' (Error: %v)", trackName, err)
 	}
 
 	// Release APK to track

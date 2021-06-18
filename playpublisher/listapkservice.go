@@ -11,7 +11,7 @@ type ListApkService struct {
 
 // List allows to list all the APK for the target bundle identifier into the PlayStore account
 func (s *ListApkService) List(packageName string) error {
-	fmt.Println("Resolving APK list for package : ", packageName)
+	fmt.Printf("Resolving APK list for package: %s\n", packageName)
 
 	editID, err := s.helper.insertEdit(packageName)
 	if err != nil {

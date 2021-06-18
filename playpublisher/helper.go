@@ -33,7 +33,7 @@ func NewHelper(service *androidpublisher.Service) *AndroidPublisherHelper {
 func (h *AndroidPublisherHelper) createEdit(packageNameId string) (*androidpublisher.AppEdit, error) {
 	edit, err := h.service.Edits.Insert(packageNameId, &androidpublisher.AppEdit{}).Do()
 	if err != nil {
-		return nil, fmt.Errorf("Failed to create the edit (Error: %v)", err)
+		return nil, fmt.Errorf("failed to create the edit (Error: %v)", err)
 	}
 
 	return edit, nil
@@ -65,7 +65,7 @@ func (h *AndroidPublisherHelper) initiateUpload(reader io.Reader,
 
 	apk, err := edit.Media(reader, googleapi.ContentType(contentType)).Do()
 	if err != nil {
-		return nil, fmt.Errorf("Falied to initiate upload (Error: %v)", err)
+		return nil, fmt.Errorf("falied to initiate upload (Error: %v)", err)
 	}
 
 	return apk, nil
@@ -120,7 +120,7 @@ func (h *AndroidPublisherHelper) releaseApkToTrack(packageNameID string,
 
 	_, err := h.editTrackService.Update(packageNameID, editID, track.Track, track).Do()
 	if err != nil {
-		return fmt.Errorf("Failed to update the track (Error: %v)", err)
+		return fmt.Errorf("failed to update the track (Error: %v)", err)
 	}
 
 	return nil
@@ -129,7 +129,7 @@ func (h *AndroidPublisherHelper) releaseApkToTrack(packageNameID string,
 func (h *AndroidPublisherHelper) validateEdit(packageNameID string, editID string) error {
 	_, err := h.editService.Validate(packageNameID, editID).Do()
 	if err != nil {
-		return fmt.Errorf("Failed to validate release. Error: %v", err)
+		return fmt.Errorf("failed to validate release. Error: %v", err)
 	}
 
 	return nil

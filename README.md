@@ -1,18 +1,12 @@
 # Go Playstore publisher
 
-## Features
-
-TBD
-
 ## Usage
 
-### Via Docker
+### CLI
 
-TBD
-
-### Via Go CLI
-
-TBD
+```
+go-play-publisher upload --apkFile APK_FILE --packageNameID PACKAGE_NAME --serviceAccountFile SERVICE_ACCOUNT_FILE
+```
 
 ## License
 

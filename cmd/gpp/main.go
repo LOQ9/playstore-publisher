@@ -2,104 +2,87 @@ package main
 
 import (
 	"fmt"
-	"log"
+	"go-playstore-publisher/playpublisher"
 	"os"
 
-	"go-playstore-publisher/playpublisher"
-
-	"github.com/urfave/cli/v2"
+	"github.com/spf13/cobra"
+	"github.com/spf13/viper"
 )
 
-var apkFilePath string
-var serviceAccountFilePath string
-var packageNameID string
+var (
+	// Used for flags.
+	apkFilePath            string
+	serviceAccountFilePath string
+	packageNameID          string
+
+	rootCmd = &cobra.Command{
+		Use:   "playstore-publisher",
+		Short: "Publish applications to PlayStore",
+		Long:  "Allow publishing applications to the Google Play Store",
+	}
+)
 
 func main() {
-	app := initCli()
-	err := app.Run(os.Args)
+	cobra.OnInitialize(initConfig)
 
-	if err != nil {
-		log.Fatal(err)
-	}
-}
+	rootCmd.PersistentFlags().StringVarP(&serviceAccountFilePath, "serviceAccountFile", "s", "", "The Play publisher service account file")
+	rootCmd.PersistentFlags().StringVarP(&packageNameID, "packageNameID", "p", "", "The package name ID")
+	rootCmd.PersistentFlags().StringVarP(&apkFilePath, "apkFile", "a", "", "The path to the APK to upload")
+	viper.BindPFlag("useViper", rootCmd.PersistentFlags().Lookup("viper"))
 
-func initCli() *cli.App {
-	return &cli.App{
-		Commands: getCommands(),
-		Flags:    getFlags(),
-		Name:     "go-play-publisher",
-		Usage:    "Go - PlayStore Publisher",
-		Action: func(c *cli.Context) error {
-			fmt.Println("c :::", c)
-			return nil
+	rootCmd.MarkPersistentFlagRequired("serviceAccountFile")
+	rootCmd.MarkPersistentFlagRequired("packageNameID")
+	rootCmd.MarkPersistentFlagRequired("apkFile")
+
+	var listApks = &cobra.Command{
+		Use:   "list",
+		Short: "List upload APK into the application in the Play Store",
+		RunE: func(cmd *cobra.Command, args []string) error {
+			client, err := playpublisher.NewClient(serviceAccountFilePath)
+			if err != nil {
+				return err
+			}
+
+			return client.ListService.List(packageNameID)
 		},
 	}
-}
 
-func getCommands() []*cli.Command {
-	return []*cli.Command{
-		{
-			Name:   "list",
-			Usage:  "List upload APK into the application in the Play Store",
-			Action: actionListApk,
-		},
-		{
-			Flags:  getUploadFlags(),
-			Name:   "upload",
-			Usage:  "Upload APK binary to the PlayStore",
-			Action: actionUploadApk,
-		},
-	}
-}
+	var uploadApk = &cobra.Command{
+		Use:   "upload",
+		Short: "Upload APK binary to the PlayStore",
+		RunE: func(cmd *cobra.Command, args []string) error {
+			// fmt.Printf("Inside subCmd Run with args: %v\n", args)
+			client, err := playpublisher.NewClient(serviceAccountFilePath)
+			if err != nil {
+				return err
+			}
 
-func getUploadFlags() []cli.Flag {
-	return []cli.Flag{
-		&cli.StringFlag{
-			Destination: &apkFilePath,
-			Name:        "apkFile",
-			Required:    true,
-			Usage:       "The path to the APK to upload",
-		},
-		&cli.StringFlag{
-			Destination: &packageNameID,
-			Name:        "packageNameID",
-			Required:    true,
-			Usage:       "The package name ID",
+			file, err := os.Open(apkFilePath)
+			if err != nil {
+				return err
+			}
+			defer file.Close()
+
+			return client.UploadService.Upload(packageNameID, file, "alpha")
 		},
 	}
+
+	rootCmd.AddCommand(listApks)
+	rootCmd.AddCommand(uploadApk)
+
+	rootCmd.Execute()
 }
 
-func getFlags() []cli.Flag {
-	return []cli.Flag{
-		&cli.StringFlag{
-			Destination: &serviceAccountFilePath,
-			Name:        "serviceAccountFile",
-			Required:    true,
-			Usage:       "The Play publisher service account file",
-		},
-	}
-}
-
-func actionListApk(c *cli.Context) error {
-	client, err := playpublisher.NewClient(serviceAccountFilePath)
-	if err != nil {
-		return err
+func initConfig() {
+	if serviceAccountFilePath != "" {
+		// Use config file from the flag.
+		viper.SetConfigFile(serviceAccountFilePath)
 	}
 
-	return client.ListService.List(c.Args().First())
-}
+	viper.SetEnvPrefix("PP")
+	viper.AutomaticEnv()
 
-func actionUploadApk(c *cli.Context) error {
-	client, err := playpublisher.NewClient(serviceAccountFilePath)
-	if err != nil {
-		return err
+	if err := viper.ReadInConfig(); err == nil {
+		fmt.Println("Using config file:", viper.ConfigFileUsed())
 	}
-
-	file, err := os.Open(apkFilePath)
-	if err != nil {
-		return err
-	}
-	defer file.Close()
-
-	return client.UploadService.Upload(packageNameID, file, "alpha")
 }

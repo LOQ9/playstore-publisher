@@ -9,7 +9,6 @@ import (
 	"net/http"
 	"os"
 
-	"golang.org/x/oauth2"
 	"golang.org/x/oauth2/google"
 	"golang.org/x/oauth2/jwt"
 	"google.golang.org/api/androidpublisher/v3"
@@ -73,18 +72,17 @@ func resolveServiceAccount(reader io.Reader) (*http.Client, error) {
 		return nil, err
 	}
 
-	//
 	jwt, err := tokenToJwt(token)
 	if err != nil {
 		return nil, err
 	}
 
-	return jwt.Client(oauth2.NoContext), nil
+	return jwt.Client(context.Background()), nil
 }
 
 func tokenToJwt(token Token) (*jwt.Config, error) {
 	if token.Email == "" || token.PrivateKey == "" {
-		return nil, fmt.Errorf("Invalid token file payload")
+		return nil, fmt.Errorf("invalid token file payload")
 	}
 
 	return &jwt.Config{
