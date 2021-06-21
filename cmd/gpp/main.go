@@ -13,6 +13,7 @@ var (
 	apkFilePath            string
 	serviceAccountFilePath string
 	packageNameID          string
+	releaseTrack           string
 
 	rootCmd = &cobra.Command{
 		Use:   "playstore-publisher",
@@ -25,6 +26,7 @@ func main() {
 	rootCmd.PersistentFlags().StringVarP(&serviceAccountFilePath, "serviceAccountFile", "s", "", "The Play publisher service account file")
 	rootCmd.PersistentFlags().StringVarP(&packageNameID, "packageNameID", "p", "", "The package name ID")
 	rootCmd.PersistentFlags().StringVarP(&apkFilePath, "apkFile", "a", "", "The path to the APK to upload")
+	rootCmd.PersistentFlags().StringVarP(&releaseTrack, "releaseTrack", "r", "production", "The release track name")
 
 	viper.SetEnvPrefix("pp")
 	viper.AutomaticEnv()
@@ -32,10 +34,12 @@ func main() {
 	viper.BindEnv("serviceAccountFile")
 	viper.BindEnv("packageNameID")
 	viper.BindEnv("apkFile")
+	viper.BindEnv("releaseTrack")
 
 	viper.BindPFlag("serviceAccountFile", rootCmd.PersistentFlags().Lookup("serviceAccountFile"))
 	viper.BindPFlag("packageNameID", rootCmd.PersistentFlags().Lookup("packageNameID"))
 	viper.BindPFlag("apkFile", rootCmd.PersistentFlags().Lookup("apkFile"))
+	viper.BindPFlag("releaseTrack", rootCmd.PersistentFlags().Lookup("releaseTrack"))
 
 	var listApks = &cobra.Command{
 		Use:   "list",
@@ -66,7 +70,7 @@ func main() {
 			}
 			defer file.Close()
 
-			return client.UploadService.Upload(viper.GetString("packageNameID"), file, "alpha")
+			return client.UploadService.Upload(viper.GetString("packageNameID"), file, viper.GetString("releaseTrack"))
 		},
 	}
 
