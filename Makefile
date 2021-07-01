@@ -4,7 +4,7 @@ deps:
 	go mod download
 
 build:
-	go build -o ${APP_NAME} cmd/gpp/main.go
+	CGO_ENABLED=0 go build -o ${APP_NAME} cmd/gpp/main.go
 
 install:
 	CGO_ENABLED=0 go install ./cmd/gpp/main.go
